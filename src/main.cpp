@@ -1,26 +1,58 @@
 #include <Arduino.h>
 
-/*
+#include <TFT_eSPI.h> // Hardware-specific library
+#include <SPI.h>
+
+#include "pub/globals.h"
+#include "components/system_manager.comp.h"
 #include "components/app_manager.comp.h"
 #include "components/display_manager.comp.h"
 #include "components/wifi.comp.h"
 #include "applications/timer.app.h"
 
+const int static_framerate = 300; //fps
+
 //Init all the apps
+SystemManager system_manager = SystemManager();
+Timer timerApp = Timer();
+
+int fdelay() {
+  return MS_PER_S / static_framerate;
+}
 
 void setup() {
+  Serial.begin(115200);
+
   //Add all the apps
+  system_manager.addApp(make_shared<Timer>(timerApp));
+
+  system_manager.getAppManager()->selectApp(0);
+  system_manager.getAppManager()->runSelectedApp();
+
+  system_manager.init();
 }
 
+int lcount = 0;
 void loop() {
-  //Tick the AppManager
-}
-*/
+  system_manager.tick();
+  system_manager.draw();
+  
+  if (lcount >= 5 * MS_PER_S / fdelay()) {
+    system_manager.getAppManager()->quitApp();
+    lcount = 0;
+  }
 
+  lcount++;
+  delay (fdelay());
+}
+
+
+/*
 #include <TFT_eSPI.h> // Hardware-specific library
 #include <SPI.h>
 
 TFT_eSPI tft = TFT_eSPI();       // Invoke custom library
+//can we create frames or spaces for tft so that we can pass a tft object and it is not the full screen?
 
 void setup(void) {
   Serial.begin(115200);
@@ -41,7 +73,4 @@ void setup(void) {
 
   Serial.println("done");
 }
-
-void loop() {
-
-}
+*/

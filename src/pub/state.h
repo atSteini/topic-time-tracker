@@ -10,7 +10,10 @@ class State {
             RUNNING = 1,
             PAUSED = 2,
             FINISHED = 3,
-            CHILD_FINISHED = 4
+            CHILD_FINISHED = 4,
+            ERROR = 5,
+            WAITING = 6,
+            STOPPED = 7
         };
         State() = default;
         constexpr State(StateEnum state_) : value(state_) { }
@@ -20,7 +23,11 @@ class State {
         State& operator=(StateEnum v) { value = v; return *this;}
         
         const bool isFinished() {
-            return value == FINISHED;
+            return value == FINISHED || value == STOPPED;
+        }
+
+        const bool isAppRunning() {
+            return !isFinished() && value != NOT_STARTED;
         }
 
         const bool isChildFinished() {
@@ -49,6 +56,14 @@ class State {
                 case 4:
                     name = "CHILD_FINISHED";
                     break;
+                case 5:
+                    name = "ERROR";
+                    break;
+                case 6:
+                    name = "WAITING";
+                    break;
+                case 7:
+                    name = "STOPPED";
                 default:
                     name = String(value);
             }
